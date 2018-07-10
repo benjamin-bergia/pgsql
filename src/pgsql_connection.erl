@@ -138,6 +138,7 @@
     |   {application_name, atom() | iodata()}   % default: node()
     |   {timezone, iodata() | undefined}        % default: undefined (not set)
     |   {async, pid()}                          % subscribe to notifications (default: no)
+    |   {connection_timeout, integer()}         % default: infinity
     |   proplists:property().                   % undocumented !
 -type open_options() :: [open_option()].
 -type query_option() ::
@@ -450,7 +451,12 @@ unsubscribe(Pid, {pgsql_connection, ConnectionPid}) ->
 %%
 -spec start_link(open_options()) -> {ok, pid()} | {error, any()}.
 start_link(Options) ->
-    gen_server:start_link(?MODULE, Options, []).
+  case lists:keytake(connection_timeout, 1, Options) of
+    false ->
+      gen_server:start_link(?MODULE, Options, []);
+    {value, {connection_timeout, Timeout}, ConnectionOptions} ->
+      gen_server:start_link(?MODULE, ConnectionOptions, [{timeout, Timeout}])
+  end.
 
 %% ========================================================================= %%
 %% gen_server API

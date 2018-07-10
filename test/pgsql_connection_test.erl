@@ -63,6 +63,16 @@ open_close_test_() ->
             catch throw:{pgsql_error, _Error} ->
                 ok
             end
+        end)},
+        {"Connection timeout",
+        ?_test(begin
+            try
+                R = pgsql_connection:open("0.0.0.0", "test", "test", "", [{connection_timeout, 0}]),
+                pgsql_connection:close(R),
+                ?assert(false)
+            catch throw:timeout ->
+                ok
+            end
         end)}
     ]}.
 
